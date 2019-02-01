@@ -18,8 +18,8 @@ int main(int argc, char const *argv[]) {
   // Copy vectors from host memory to device memory
   cudaMemcpy(tab_GPU, tab_CPU, N * sizeof(int), cudaMemcpyHostToDevice);
 
-  dim3 threadsPerBlock = 256;
-  dim3 blocksPerGrid =
+  int threadsPerBlock = 256;
+  int blocksPerGrid =
             ceil(N / threadsPerBlock);
 
   saxpy<<<blocksPerGrid,threadsPerBlock>>>(tab_GPU, N, a, b);
