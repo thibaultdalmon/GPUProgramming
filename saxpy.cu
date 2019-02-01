@@ -11,18 +11,22 @@ int main(int argc, char const *argv[]) {
   for (int i=0; i<N; i++){
     tab_CPU[i] = i;
   }
-  
+
   int *tab_GPU;
   // Allocate vector in device memory
   cudaMalloc(&tab_GPU, N * sizeof(int));
   // Copy vectors from host memory to device memory
   cudaMemcpy(tab_GPU, tab_CPU, N * sizeof(int), cudaMemcpyHostToDevice);
 
-  saxpy<<<1,N>>>(tab_GPU, N, a, b);
+  dim3 threadsPerBlock = 256;
+  dim3 blocksPerGrid =
+            ceil(N / threadsPerBlock);
+
+  saxpy<<<blocksPerGrid,threadsPerBlock>>>(tab_GPU, N, a, b);
 
   cudaMemcpy(tab_CPU, tab_GPU, N * sizeof(int), cudaMemcpyDeviceToHost);
   cudaFree(tab_GPU);
-  
+
   for (int i=0; i<20; i++){
     printf("%d ",tab_CPU[i]);
   }
@@ -32,6 +36,8 @@ int main(int argc, char const *argv[]) {
 
 
 __global__ void saxpy(int *tab, int N, int a, int b){
-  int idx = threadIdx.x;
-  tab[idx] = a * tab[idx] + b;
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (idx<=N)
+    tab[idx] = a * tab[idx] + b;
 }
