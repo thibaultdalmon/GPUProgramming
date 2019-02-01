@@ -3,11 +3,12 @@
 __global__ void saxpy(int *tab, int N, int a, int b);
 
 int main(int argc, char const *argv[]) {
-  int N = 32;
-  int a = 2;
-  int b = 1;
-  int tab_CPU[N];
+  int N = atoi(argv[1]); 
+  int a = atoi(argv[2]); 
+  int b = atoi(argv[3]);
+  int N_threads = atoi(argv[4]);
 
+  int tab_CPU[N];
   for (int i=0; i<N; i++){
     tab_CPU[i] = i;
   }
@@ -18,9 +19,9 @@ int main(int argc, char const *argv[]) {
   // Copy vectors from host memory to device memory
   cudaMemcpy(tab_GPU, tab_CPU, N * sizeof(int), cudaMemcpyHostToDevice);
 
-  int threadsPerBlock = 256;
+  int threadsPerBlock = N_threads;
   int blocksPerGrid =
-            ceil(N / threadsPerBlock);
+            (int) ceil(N / (float)threadsPerBlock);
 
   saxpy<<<blocksPerGrid,threadsPerBlock>>>(tab_GPU, N, a, b);
 
