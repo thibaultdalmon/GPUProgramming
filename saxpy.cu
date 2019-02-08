@@ -1,31 +1,32 @@
 #include<stdio.h>
+#include<stdint.h>
 
-__global__ void saxpy(int *tab, int N, int a, int b);
+__global__ void saxpy(int32_t *tab, int32_t N, int32_t a, int32_t b);
 
 int main(int argc, char const *argv[]) {
-  int N = atoi(argv[1]); 
-  int a = atoi(argv[2]); 
-  int b = atoi(argv[3]);
-  int N_threads = atoi(argv[4]);
+  int32_t N = (int32_t) atoi(argv[1]);
+  int32_t a = (int32_t) atoi(argv[2]);
+  int32_t b = (int32_t) atoi(argv[3]);
+  int32_t N_threads = (int32_t) atoi(argv[4]);
 
-  int tab_CPU[N];
+  int32_t tab_CPU[N];
   for (int i=0; i<N; i++){
-    tab_CPU[i] = i;
+    tab_CPU[i] = (int32_t) i;
   }
 
-  int *tab_GPU;
+  int32_t *tab_GPU;
   // Allocate vector in device memory
-  cudaMalloc(&tab_GPU, N * sizeof(int));
+  cudaMalloc(&tab_GPU, N * sizeof(int32_t));
   // Copy vectors from host memory to device memory
-  cudaMemcpy(tab_GPU, tab_CPU, N * sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(tab_GPU, tab_CPU, N * sizeof(int32_t), cudaMemcpyHostToDevice);
 
-  int threadsPerBlock = N_threads;
-  int blocksPerGrid =
-            (int) ceil(N / (float)threadsPerBlock);
+  int32_t threadsPerBlock = N_threads;
+  int32_t blocksPerGrid =
+            (int32_t) ceil(N / (float)threadsPerBlock);
 
   saxpy<<<blocksPerGrid,threadsPerBlock>>>(tab_GPU, N, a, b);
 
-  cudaMemcpy(tab_CPU, tab_GPU, N * sizeof(int), cudaMemcpyDeviceToHost);
+  cudaMemcpy(tab_CPU, tab_GPU, N * sizeof(int32_t), cudaMemcpyDeviceToHost);
   cudaFree(tab_GPU);
 
   for (int i=0; i<20; i++){
@@ -36,8 +37,8 @@ int main(int argc, char const *argv[]) {
 }
 
 
-__global__ void saxpy(int *tab, int N, int a, int b){
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void saxpy(int32_t *tab, int32_t N, int32_t a, int32_t b){
+  int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx<=N)
     tab[idx] = a * tab[idx] + b;

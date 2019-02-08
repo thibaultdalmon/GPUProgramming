@@ -71,8 +71,10 @@ __global__ void conv(float *tab, int N, float *filter, int s, float *output){
   if (idx<=N){
     output[idx] = filter[s]*tab[idx];
     for (int i=1; i<s+1; i++){
-      if (idx-i>=0) output[idx] += filter[s+i]*tab[idx-i];
-      if (idx+i<N) output[idx] += filter[s-i]*tab[idx+i];
+      if (idx-i >= 0) output[idx] += filter[s+i]*tab[idx-i];
+      else output[idx] += filter[s+i]*tab[idx-i+N];
+      if(idx+i < N) output[idx] += filter[s-i]*tab[idx+i];
+      else output[idx] += filter[s+i]*tab[idx+i-N];
     }
   }
 }
@@ -137,11 +139,11 @@ void conv_CPU(float *tab, int N, float *filter, int s, float *tab_filtered){
   for (int idx=0; idx<N; idx++){
     tab_filtered[idx] = filter[s]*tab[idx];
     for (int i=1; i<s+1; i++){
-      if (idx-i>=0) tab_filtered[idx] += filter[s+i]*tab[idx-i];
-      if (idx+i<N) tab_filtered[idx] += filter[s-i]*tab[idx+i];
+      tab_filtered[idx] += filter[s+i]*tab[(idx-i)%N];
+      tab_filtered[idx] += filter[s-i]*tab[(idx+i)%N];
     }
   }
-  
+
   finish = clock();
   duration = (double)(finish - start) / CLOCKS_PER_SEC;
   printf("%f",duration);
